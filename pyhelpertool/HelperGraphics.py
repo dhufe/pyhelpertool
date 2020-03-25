@@ -55,6 +55,6 @@ def set_style():
     sns.set_style("ticks", {"xtick.major.size": 8, "ytick.major.size": 8})
     sns.set_style({"xtick.direction": "in","ytick.direction": "in"})
 
-def set_size(fig):
-    fig.set_size_inches(8, 5)
+def set_size(fig, width = 8, height = 5):
     fig.tight_layout()
+    fig.set_size_inches(width, height)
