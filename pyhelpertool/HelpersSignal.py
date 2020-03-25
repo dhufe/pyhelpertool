@@ -37,52 +37,31 @@ def fhwm ( x, y, trsh = .5):
 def PitchDetechtion(Samples,
           fs,
           window=np.hanning,
-          partials=5,
-          plot=False):
+          partials=5 ):
 
     N = Samples.size
     N2 = int(2**np.log2(N))
     wdw = window(N)
-    frequencies = np.fft.rfftfreq(N2, 1 / fs)
 
-    spectrum = np.fft.rfft( wdw*Samples, N2 )
+    frequencies = np.fft.fftfreq(N2, d=1./fs )
+    spectrum = 2*np.abs(np.fft.fft( wdw*Samples, N2 )) / N2
+
     # Downsample spectrum.
     spectra = []
     for n in range(1, partials + 1):
-        s = sigpy.resample(spectrum, len(spectrum) // n)
+        s = sigpy.resample(spectrum, N2 // n)
         spectra.append(s)
 
-    # Truncate to most downsampled spectrum.
-    l = min(len(s) for s in spectra)
-    a = np.zeros((len(spectra), l), dtype=spectrum.dtype)
+    a = np.zeros(( partials , N2), dtype=spectrum.dtype)
+
     for i, s in enumerate(spectra):
-        a[i] += s[:l]
+        ll = len(s)
+        a[i, 0:ll] = s
 
-    # Multiply spectra per frequency bin.
-    hps = np.product(np.abs(a), axis=0)
+    hps = np.product(np.abs(a), axis=0) / partials
 
-    #kernel = signal.gaussian(9, 1)
-    #hps = signal.fftconvolve(hps, kernel, mode='same')
-    #peaks = sp.signal.find_peaks_cwt(np.abs(hps), np.arange(1, 3))
-    # Pick largest peak, it's likely f0.
-    peak = np.argmax(hps)
-    f0 = frequencies[peak]
-
-    if plot:
-        # Plot partial magnitudes individually.
-        for s, ax in zip(spectra, plt.subplots(len(spectra), sharex=True)[1]):
-            ax.plot(frequencies[0:len(s)] , np.abs(s))
-            ax.set_xlim( 0, fs*.5 )
-            plt.suptitle('Partials')
-
-        plt.plot(np.arange(len(hps)), np.abs(hps))
-        plt.scatter(peak, np.abs(hps[peak]), color='r')
-        plt.title('HPS peak')
-        plt.xlim( 0, 100 )
-
-    FundamentalIdx = int ( f0*N/fs)
-    Fundamental    = f0
-    return Fundamental
+    fIdx = np.argmax ( hps[0:N2//2] )
+    return frequencies[fIdx]
 
 def undelay_td_series ( y1, y2, fs, same = False  ):
     """ calculates the delay between two signals using cross correlation """
