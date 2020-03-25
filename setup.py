@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='pyhelpertool',
-      version='0.2',
+      version='0.22.3',
       description='A collection of helping tools and implementations.',
       url='https://github.com/hufe/pyhelpertool',
       author='Daniel Hufschläger',
